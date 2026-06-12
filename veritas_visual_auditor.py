@@ -210,20 +210,26 @@ class VisualAuditorAPI:
                 if orig_fps <= 0 or orig_fps > 120:
                     orig_fps = 30.0
                 
+                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                if total_frames <= 0:
+                    total_frames = 300
+                    
+                step = max(1, total_frames / 16.0)
+                uniform_indices = set(int(i * step) for i in range(16))
+                
                 frames = []
+                frame_idx = 0
                 while True:
                     ret, frame = cap.read()
                     if not ret:
                         break
                     
-                    # IMMEDIATELY RESIZE to prevent 1.8GB RAM spike (which causes the SIGKILL 'Oh no' crash)
-                    pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                    pil_img = pil_img.resize((224, 224))
-                    frames.append(pil_img)
-                    
-                    # Cap at 300 frames (~10 seconds at 30fps) to prevent extreme processing times
-                    if len(frames) >= 300:
-                        break
+                    if frame_idx in uniform_indices or frame_idx == 0:
+                        pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        pil_img = pil_img.resize((224, 224))
+                        frames.append(pil_img)
+                        
+                    frame_idx += 1
                 cap.release()
                 
                 if not frames:
@@ -232,17 +238,11 @@ class VisualAuditorAPI:
                 
                 img = frames[0]
                 
-                # Sample exactly 16 uniform frames for the neural inference step
-                inference_frames = []
-                if len(frames) <= 16:
-                    inference_frames = frames.copy()
-                    while len(inference_frames) < 16:
-                        inference_frames.append(inference_frames[-1])
-                else:
-                    step = len(frames) / 16.0
-                    for i in range(16):
-                        idx = int(i * step)
-                        inference_frames.append(frames[idx])
+                # Guarantee exactly 16 frames for the neural tensor
+                inference_frames = frames.copy()
+                while len(inference_frames) < 16:
+                    inference_frames.append(inference_frames[-1])
+                inference_frames = inference_frames[:16]
                         
             else:
                 img = Image.open(file_path).convert('RGB')
@@ -328,7 +328,7 @@ class VisualAuditorAPI:
                 
                 cap2 = cv2.VideoCapture(file_path)
                 frame_count = 0
-                while cap2.isOpened() and frame_count < 300:
+                while cap2.isOpened():
                     ret, frame = cap2.read()
                     if not ret: break
                     
