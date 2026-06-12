@@ -17,3 +17,4 @@ scikit-learn
 matplotlib
 opencv-python-headless
 transformers
+reportlab
