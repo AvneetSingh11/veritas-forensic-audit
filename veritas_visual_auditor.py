@@ -323,30 +323,47 @@ class VisualAuditorAPI:
                 
                 vid_fps = orig_fps if 'orig_fps' in locals() else 30.0
                 
-                # Use a streaming writer so we NEVER load all frames into RAM
-                out_writer = imageio.get_writer(vid_filename, fps=vid_fps, codec='libx264', format='FFMPEG', pixelformat='yuv420p')
-                
+                # PREVENT CLOUD TIMEOUTS ON LONG VIDEOS:
+                # CPU Backprop takes ~0.1s per frame. We cap at 150 frames total (~15 seconds processing)
                 cap2 = cv2.VideoCapture(file_path)
+                total_frames_heatmap = int(cap2.get(cv2.CAP_PROP_FRAME_COUNT))
+                if total_frames_heatmap <= 0: 
+                    total_frames_heatmap = 300
+                    
+                max_heatmap_frames = 150
+                frame_skip = max(1, total_frames_heatmap // max_heatmap_frames)
+                out_fps = max(1.0, vid_fps / frame_skip)
+                
+                # Use a streaming writer so we NEVER load all frames into RAM
+                out_writer = imageio.get_writer(vid_filename, fps=out_fps, codec='libx264', format='FFMPEG', pixelformat='yuv420p')
+                
                 frame_count = 0
+                processed_count = 0
                 while cap2.isOpened():
                     ret, frame = cap2.read()
                     if not ret: break
                     
-                    # Original high-resolution RGB frame for beautiful heatmap overlay
-                    orig_frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    
-                    # Deepfake neural inference requires 224x224
-                    pil_img = Image.fromarray(orig_frame_rgb)
-                    f_resized = pil_img.resize((224, 224))
-                    f_tensor = transform(f_resized).unsqueeze(0).to(self.device)
-                    
-                    # Pass original resolution to XAI so it scales the heatmap to 1080p
-                    f_np_orig = orig_frame_rgb.astype(np.float32) / 255.0
-                    
-                    with torch.enable_grad():
-                        hm_np = generate_forensic_heatmap(self.scanner, f_tensor, f_np_orig)
+                    if frame_count % frame_skip == 0:
+                        # Original high-resolution RGB frame for beautiful heatmap overlay
+                        orig_frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         
-                    out_writer.append_data(hm_np)
+                        # Deepfake neural inference requires 224x224
+                        pil_img = Image.fromarray(orig_frame_rgb)
+                        f_resized = pil_img.resize((224, 224))
+                        f_tensor = transform(f_resized).unsqueeze(0).to(self.device)
+                        
+                        # Pass original resolution to XAI so it scales the heatmap to 1080p
+                        f_np_orig = orig_frame_rgb.astype(np.float32) / 255.0
+                        
+                        with torch.enable_grad():
+                            hm_np = generate_forensic_heatmap(self.scanner, f_tensor, f_np_orig)
+                            
+                        out_writer.append_data(hm_np)
+                        processed_count += 1
+                        
+                        if processed_count >= max_heatmap_frames:
+                            break
+                            
                     frame_count += 1
                     
                 cap2.release()
