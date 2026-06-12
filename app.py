@@ -522,22 +522,18 @@ with tab_visual:
         else:
             st.text_area(label="Visual Console Traceback", value="System idle. Awaiting visual tensors...", height=300)
 
-try:
-    with tab_sim:
-        st.write("#### 🌌 GPU-Accelerated Acoustic Visualization")
-        st.write("Interact with the simulation below to understand how the Veritas Ensemble Engine interprets specific acoustic artifacts like Zero-Crossing Rate anomalies and Spectral Centroid shifts.")
-        
-        # --- 3D VISUALIZATION COMPONENT ---
-        with open("threshold_tool/3d_visualizer.html", "r", encoding="utf-8") as f:
-            html_data = f.read()
-        with open("threshold_tool/3d_visualizer.js", "r", encoding="utf-8") as f:
-            js_data = f.read()
-            
-        # Render component safely without deprecated components API
-        # Combine HTML and JS for inline execution
-        html_data = html_data.replace('<script src="3d_visualizer.js"></script>', f'<script>\n{js_data}\n</script>')
-        st.markdown(f'<div style="width:100%; height:750px; border:none; overflow:hidden;">{html_data}</div>', unsafe_allow_html=True)
-except Exception as e:
-    import traceback
-    st.error("FATAL ERROR IN TAB SIMULATOR")
-    st.code(traceback.format_exc())
+with tab_sim:
+    st.write("#### 🌌 GPU-Accelerated Acoustic Visualization")
+    st.write("Interact with the simulation below to understand how the Veritas Ensemble Engine interprets specific acoustic artifacts like Zero-Crossing Rate anomalies and Spectral Centroid shifts.")
+    
+    st.info("🚀 **Simulator Module Offline for Maintenance**\n\nThe 3D Acoustic Visualizer has been temporarily disabled because its WebGL Javascript bundle was causing the Streamlit frontend to crash on boot. The core Forensic Audit engines are unaffected and fully operational.")
+    
+    # Fallback placeholder
+    st.markdown("""
+        <div style="width: 100%; height: 400px; background: rgba(30, 32, 35, 0.6); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="text-align: center; color: #A0AEC0;">
+                <h3 style="color: #4A5568;">WebGL Component Unloaded</h3>
+                <p>Please use the Audio and Visual Audit tabs for forensic analysis.</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
