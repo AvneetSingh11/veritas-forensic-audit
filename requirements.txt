@@ -16,3 +16,4 @@ xgboost
 scikit-learn
 matplotlib
 opencv-python-headless
+transformers
