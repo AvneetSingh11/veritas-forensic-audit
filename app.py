@@ -183,13 +183,12 @@ class CreditManager:
             
         return state
         
-    @classmethod
+       @classmethod
     def use_credit(cls):
-        #
-        return False
+        return True
 
 # --- CREDIT SYSTEM UI ---
-credit_state = CreditManager.check_and_refill()
+credit_state = {"credits": 99}
 color = "#48BB78" if credit_state['credits'] > 0 else "#F56565"
 st.markdown(f"""
     <div style='text-align: right; padding: 10px 20px 0px 0px;'>
