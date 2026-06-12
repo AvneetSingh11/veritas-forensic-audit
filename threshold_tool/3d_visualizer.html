@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veritas Cinematic 3D Audio Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0b0c10;
+            color: #c5c6c7;
+            font-family: 'Inter', sans-serif;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+            background: rgba(11, 12, 16, 0.85);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #1f2833;
+            width: 350px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            color: #66fcf1;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid #1f2833;
+            padding-bottom: 10px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .control-group label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #c5c6c7;
+            display: flex;
+            justify-content: space-between;
+        }
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1f2833;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #45a29e;
+            cursor: pointer;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .preset-btn {
+            background: #1f2833;
+            color: #c5c6c7;
+            border: 1px solid #45a29e;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+        .preset-btn:hover {
+            background: #45a29e;
+            color: #0b0c10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-panel">
+    <h1>Acoustic Wave Core</h1>
+    
+    <div class="control-group">
+        <label>Authentic Wave (MFCC Smoothness) <span id="val-auth">1.0</span></label>
+        <input type="range" id="auth-param" min="0" max="3" step="0.01" value="1.0">
+    </div>
+    
+    <div class="control-group">
+        <label>Clone Anomaly (ZCR Spikes) <span id="val-clone">0.0</span></label>
+        <input type="range" id="clone-param" min="0" max="3" step="0.01" value="0.0">
+    </div>
+    
+    <div class="control-group">
+        <label>Micro-Vibrations (Deepfake Resonance) <span id="val-vib">0.0</span></label>
+        <input type="range" id="vib-param" min="0" max="2" step="0.01" value="0.0">
+    </div>
+    
+    <div class="control-group">
+        <label>Amplitude Flattening (Compression) <span id="val-flat">0.0</span></label>
+        <input type="range" id="flat-param" min="0" max="1" step="0.01" value="0.0">
+    </div>
+
+    <div class="preset-buttons">
+        <button class="preset-btn" id="btn-authentic">Authentic Voice</button>
+        <button class="preset-btn" id="btn-lowquality">Low-Quality Clone</button>
+        <button class="preset-btn" id="btn-deepfake">Sophisticated Deepfake</button>
+        <button class="preset-btn" id="btn-compressed">Compressed Audio</button>
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- OrbitControls -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<!-- Main Script -->
+<script src="3d_visualizer.js"></script>
+
+</body>
+</html>

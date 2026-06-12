@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Detection Threshold Simulator</title>
+    <!-- Use Inter font for a clean, modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Plugin for vertical annotations (like the threshold line) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.2/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+    <div class="simulator-container">
+        <!-- Header -->
+        <header>
+            <h1>Deepfake Detection Threshold Simulator</h1>
+            <button id="reset-btn" class="reset-btn" aria-label="Reset">&#x21BA;</button>
+        </header>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><span class="color-box authentic"></span> Authentic</div>
+            <div class="legend-item"><span class="color-box synthetic"></span> Synthetic</div>
+            <div class="legend-item"><span class="color-box false-positive"></span> False Positive</div>
+            <div class="legend-item"><span class="color-box false-negative"></span> False Negative</div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <canvas id="thresholdChart"></canvas>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-label">False Positive Rate</div>
+                <div class="stat-value" id="fp-rate">0.2%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">False Negative Rate</div>
+                <div class="stat-value" id="fn-rate">33.8%</div>
+            </div>
+            <div class="stat-box strategy-box">
+                <div class="stat-label">Risk Strategy</div>
+                <div class="stat-value text-muted" id="risk-text">Risk: Accusing sources falsely.</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-row">
+            <div class="control-group slider-group">
+                <label for="threshold-slider">Confidence Threshold</label>
+                <input type="range" id="threshold-slider" min="0" max="100" value="75">
+                <input type="number" id="threshold-input" min="0" max="100" value="75">
+            </div>
+            <div class="control-group dropdown-group">
+                <label for="context-dropdown">Niche Context</label>
+                <select id="context-dropdown">
+                    <option value="journalism">Local Journalism</option>
+                    <option value="social">Social Media</option>
+                    <option value="finance">Financial Fraud</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Discriminator UI Container -->
+    <div class="simulator-container" style="margin-top: 30px;">
+        <header>
+            <h1>Audio Feature Discriminator</h1>
+        </header>
+        
+        <div class="legend" style="margin-bottom: 30px;">
+            <div class="legend-item"><span class="color-box authentic"></span> Authentic Speech</div>
+            <div class="legend-item"><span class="color-box synthetic"></span> Synthetic Deepfakes</div>
+        </div>
+
+        <div class="chart-container" style="height: 400px; margin-bottom: 20px;">
+            <canvas id="discriminatorChart"></canvas>
+        </div>
+
+        <div class="stats-row" style="flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+            <div class="stat-label">Feature Insight</div>
+            <div class="stat-value text-muted" id="insight-text" style="font-size: 15px;">Spectral brightness isolates artificial 'metallic' vocoder artifacts.</div>
+        </div>
+
+        <div class="controls-row" style="margin-top: 20px;">
+            <div class="control-group dropdown-group" style="justify-content: flex-start; flex: 1;">
+                <label for="x-axis-dropdown">X-Axis Feature</label>
+                <select id="x-axis-dropdown">
+                    <option value="mfcc">MFCC 1 (Overall Energy)</option>
+                    <option value="centroid">Spectral Centroid (Brightness)</option>
+                    <option value="zcr">Zero-Crossing Rate</option>
+                </select>
+            </div>
+            <div class="control-group dropdown-group" style="flex: 1;">
+                <label for="y-axis-dropdown">Y-Axis Feature</label>
+                <select id="y-axis-dropdown">
+                    <option value="centroid" selected>Spectral Centroid (Brightness)</option>
+                    <option value="mfcc">MFCC 1 (Overall Energy)</option>
+                    <option value="zcr">Zero-Crossing Rate</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
