@@ -7,3 +7,8 @@ fpdf2
 imageio
 imageio-ffmpeg
 psutil
+opencv-python-headless
+librosa
+c2pa-python
+Pillow
+scipy
