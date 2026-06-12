@@ -314,29 +314,43 @@ class VisualAuditorAPI:
         heatmap_video_path = None
         heatmap_error = None
         try:
-            if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov')) and frames:
+            if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov')):
                 # Video: Generate dynamic XAI heatmap video
                 import uuid
+                import imageio
+                import cv2
                 vid_filename = f"heatmap_video_{uuid.uuid4().hex[:8]}.mp4"
                 
-                out_frames = []
-                # Use the original framerate for realistic playback
                 vid_fps = orig_fps if 'orig_fps' in locals() else 30.0
                 
-                for f_idx, current_frame in enumerate(frames):
-                    f_resized = current_frame.resize((224, 224))
-                    f_np = np.array(f_resized, dtype=np.float32) / 255.0
+                # Use a streaming writer so we NEVER load all frames into RAM
+                out_writer = imageio.get_writer(vid_filename, fps=vid_fps, codec='libx264', format='FFMPEG', pixelformat='yuv420p')
+                
+                cap2 = cv2.VideoCapture(file_path)
+                frame_count = 0
+                while cap2.isOpened() and frame_count < 300:
+                    ret, frame = cap2.read()
+                    if not ret: break
+                    
+                    # Original high-resolution RGB frame for beautiful heatmap overlay
+                    orig_frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    
+                    # Deepfake neural inference requires 224x224
+                    pil_img = Image.fromarray(orig_frame_rgb)
+                    f_resized = pil_img.resize((224, 224))
                     f_tensor = transform(f_resized).unsqueeze(0).to(self.device)
                     
-                    with torch.enable_grad():
-                        hm_np = generate_forensic_heatmap(self.scanner, f_tensor, f_np)
-                        
-                    # hm_np is RGB numpy array (224, 224, 3)
-                    out_frames.append(hm_np)
+                    # Pass original resolution to XAI so it scales the heatmap to 1080p
+                    f_np_orig = orig_frame_rgb.astype(np.float32) / 255.0
                     
-                import imageio
-                # Must specify pixelformat='yuv420p' for HTML5 <video> compatibility
-                imageio.mimwrite(vid_filename, out_frames, fps=vid_fps, codec='libx264', format='FFMPEG', pixelformat='yuv420p')
+                    with torch.enable_grad():
+                        hm_np = generate_forensic_heatmap(self.scanner, f_tensor, f_np_orig)
+                        
+                    out_writer.append_data(hm_np)
+                    frame_count += 1
+                    
+                cap2.release()
+                out_writer.close()
                 heatmap_video_path = vid_filename
                 
                 # For the PDF report, we still need a static PIL image of the most anomalous frame
