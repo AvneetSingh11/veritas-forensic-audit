@@ -363,10 +363,9 @@ class VisualAuditorAPI:
         pdf_path = None
         try:
             import os
-            from visual_pdf_report import analyze_and_map_image, generate_pdf_report
+            from veritas_pdf_generator import generate_client_pdf
             
             out_pdf = "Frontend_Forensic_Report.pdf"
-            annotated_img = "frontend_detected_anomalies.png"
             
             # Use the first frame for video, or the direct file for images
             if file_path.lower().endswith(('.mp4', '.avi', '.mkv')):
@@ -375,10 +374,13 @@ class VisualAuditorAPI:
             else:
                 target_for_pdf = file_path
             
-            alerts, w_pdf, h_pdf, marked_image = analyze_and_map_image(
-                target_for_pdf, self.scanner, grid_size=(8, 8), threshold=0.55, output_img_path=annotated_img
-            )
-            generate_pdf_report(out_pdf, target_for_pdf, marked_image, alerts, (w_pdf, h_pdf), threshold=0.55, global_verdict=verdict)
+            audit_results = {
+                "verdict": verdict,
+                "confidence": round((t_score if t_score else p_score) * 100, 2),
+                "certainty_mechanism": "Visual Artifact Detection"
+            }
+            
+            generate_client_pdf(target_for_pdf, audit_results, out_pdf)
             pdf_path = out_pdf
         except Exception as e:
             print(f"PDF Generation Failed: {e}")
