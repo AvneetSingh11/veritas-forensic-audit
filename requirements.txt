@@ -1,0 +1,18 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+streamlit
+torch
+torchaudio
+torchvision
+numpy
+fpdf2
+imageio
+imageio-ffmpeg
+psutil
+librosa
+c2pa-python
+Pillow
+scipy
+xgboost
+scikit-learn
+matplotlib
+opencv-python-headless
