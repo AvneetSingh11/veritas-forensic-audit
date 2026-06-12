@@ -1,8 +1,0 @@
-streamlit
-torch
-torchaudio
-torchvision
-numpy
-fpdf2
-imageio
-imageio-ffmpeg
