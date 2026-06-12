@@ -143,7 +143,7 @@ import datetime
 
 class CreditManager:
     DB_FILE = "credits_db.json"
-    MAX_CREDITS = 5
+    MAX_CREDITS = 99
     
     @classmethod
     def get_state(cls):
@@ -185,11 +185,7 @@ class CreditManager:
         
     @classmethod
     def use_credit(cls):
-        state = cls.get_state()
-        if state["credits"] > 0:
-            state["credits"] -= 1
-            cls._save(state)
-            return True
+        #
         return False
 
 # --- CREDIT SYSTEM UI ---
