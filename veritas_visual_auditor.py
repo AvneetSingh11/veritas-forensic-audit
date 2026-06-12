@@ -335,8 +335,8 @@ class VisualAuditorAPI:
                     out_frames.append(hm_np)
                     
                 import imageio
-                # Must specify out_pixel_format='yuv420p' for HTML5 <video> compatibility
-                imageio.mimwrite(vid_filename, out_frames, fps=vid_fps, codec='libx264', format='pyav', out_pixel_format='yuv420p')
+                # Must specify pixelformat='yuv420p' for HTML5 <video> compatibility
+                imageio.mimwrite(vid_filename, out_frames, fps=vid_fps, codec='libx264', format='FFMPEG', pixelformat='yuv420p')
                 heatmap_video_path = vid_filename
                 
                 # For the PDF report, we still need a static PIL image of the most anomalous frame
