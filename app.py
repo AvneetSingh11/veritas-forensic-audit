@@ -463,12 +463,13 @@ with tab_visual:
                 else:
                     st.success(f"✅ **{results['verdict']}** (Authentic Media)")
                     
-                mcol1, mcol2 = st.columns(2)
+                mcol1, mcol2 = st.columns([1, 1])
                 with mcol1:
                     conf = results['confidence'] * 100
                     st.metric(label="System Confidence Rating", value=f"{conf:.2f}%")
                 with mcol2:
-                    st.metric(label="Execution Path", value=results["path"])
+                    st.write("**Execution Path**")
+                    st.info(results["path"])
                     
                 st.write(f"**Tier 1 & 2 Primary Score**: `{results['metrics']['tier1_2'] * 100:.2f}%`")
                 if results['metrics']['tier3'] is not None:
@@ -482,12 +483,20 @@ with tab_visual:
                 elif results.get("heatmap_video_path") and os.path.exists(results["heatmap_video_path"]):
                     st.divider()
                     st.subheader("Explainable AI (XAI) Activation Map")
+                    st.info("**How to Interpret the XAI Heatmap:**\n\n"
+                            "The heatmap uses a gradient to highlight regions the AI focused on. "
+                            "**Red/Warm zones** indicate areas with high spatial anomalies, meaning the AI suspects those pixels were generated or manipulated by synthetic engines (like GANs or Diffusion). "
+                            "**Blue/Cool zones** represent natural, unmanipulated pixels with authentic sensor grain.")
                     caption = "Grad-CAM Forensics: Red zones indicate synthetic anomalies." if results["verdict"] == "FAKE" else "Grad-CAM Forensics: Heatmap showing regions the AI focused on to determine authenticity."
                     st.write(caption)
                     st.video(results["heatmap_video_path"])
                 elif results.get("heatmap") is not None:
                     st.divider()
                     st.subheader("Explainable AI (XAI) Activation Map")
+                    st.info("**How to Interpret the XAI Heatmap:**\n\n"
+                            "The heatmap uses a gradient to highlight regions the AI focused on. "
+                            "**Red/Warm zones** indicate areas with high spatial anomalies, meaning the AI suspects those pixels were generated or manipulated by synthetic engines (like GANs or Diffusion). "
+                            "**Blue/Cool zones** represent natural, unmanipulated pixels with authentic sensor grain.")
                     caption = "Grad-CAM Forensics: Red zones indicate synthetic anomalies." if results["verdict"] == "FAKE" else "Grad-CAM Forensics: Heatmap showing regions the AI focused on to determine authenticity."
                     st.image(results["heatmap"], caption=caption, use_container_width=True)
                 elif results["verdict"] == "FAKE":

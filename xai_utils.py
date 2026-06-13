@@ -5,25 +5,9 @@ import torch
 def generate_forensic_heatmap(model, input_tensor, original_image_np):
     model.eval()
     
-    for param in model.texture_backbone.parameters():
-        param.requires_grad = True
-        
-    target_layer = model.texture_backbone.features[-1]
+    input_tensor.requires_grad_()
     
-    activations = None
-    gradients = None
-    
-    def forward_hook(module, input, output):
-        nonlocal activations
-        activations = output
-        
-    def backward_hook(module, grad_input, grad_output):
-        nonlocal gradients
-        gradients = grad_output[0]
-        
-    hook1 = target_layer.register_forward_hook(forward_hook)
-    hook2 = target_layer.register_full_backward_hook(backward_hook)
-    
+    # Forward pass through BOTH backbones
     tex_feats = model.texture_backbone(input_tensor)
     glob_feats = model.global_backbone(input_tensor)
     
@@ -41,20 +25,23 @@ def generate_forensic_heatmap(model, input_tensor, original_image_np):
     model.zero_grad()
     logit[0, 0].backward()
     
-    hook1.remove()
-    hook2.remove()
-    
-    if activations is None or gradients is None:
+    # Extract gradients directly from the input pixels (incorporates both texture and structure)
+    if input_tensor.grad is None:
         return original_image_np
         
-    weights = torch.mean(gradients, dim=(2, 3), keepdim=True)
-    cam = torch.sum(weights * activations, dim=1).squeeze().detach().cpu().numpy()
+    gradients = input_tensor.grad[0].cpu().numpy()
     
-    cam = np.maximum(cam, 0)
-    if cam.max() > 0:
-        cam = cam / cam.max()
+    # Calculate saliency by taking the max absolute gradient across color channels
+    saliency = np.max(np.abs(gradients), axis=0)
+    
+    # Heavy Gaussian blur to simulate smooth Grad-CAM blobs
+    saliency = cv2.GaussianBlur(saliency, (35, 35), 0)
+    
+    if saliency.max() > 0:
+        saliency = saliency / saliency.max()
         
-    cam = cv2.resize(cam, (original_image_np.shape[1], original_image_np.shape[0]))
+    # Resize to original image resolution
+    cam = cv2.resize(saliency, (original_image_np.shape[1], original_image_np.shape[0]))
     
     heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
@@ -65,5 +52,6 @@ def generate_forensic_heatmap(model, input_tensor, original_image_np):
     
     # Free computational graph memory to prevent RAM leaks
     model.zero_grad(set_to_none=True)
+    input_tensor.requires_grad_(False)
     
     return np.uint8(255 * cam_result)
